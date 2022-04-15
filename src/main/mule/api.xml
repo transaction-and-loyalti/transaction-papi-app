@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="api-main">
+        <http:listener config-ref="api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <flow-ref doc:name="Flow Reference" doc:id="a8bcf94a-2783-4efe-bc5f-a0cd4307390e" name="common_initialize_variableFlow"/>
+		<apikit:router config-ref="api-config" />
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+    <flow name="api-console">
+        <http:listener config-ref="api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="api-config" />
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+    <flow name="post:\members\transactions:application\json:api-config">
+    <logger level="INFO" doc:name="Logger" doc:id="11376b63-6352-4205-a560-07d554487c01" message='#[%dw 2.0
+output application/json
+---
+{
+	"flowname": flow.name,
+	"app name": app.name,
+	"status": "before flow reference"
+}]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="2231d50c-8ba6-4e45-9318-5f9a13b9a70d" name="post_implementation_papi_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="bc5f03f8-894a-45b6-94cd-3f8c74805227" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"flowname": app.flowname,&#10;	"app name": app.name,&#10;	"status": "after flow reference"&#10;}]'/>
+		
+		<error-handler ref="global_Error_Handler" />
+    </flow>
+</mule>
